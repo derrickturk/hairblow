@@ -1,5 +1,5 @@
 import re
-import os
+import subprocess
 import sys
 import zmq
 
@@ -14,11 +14,13 @@ def server(ctx: zmq.Context[zmq.Socket[Any]], sck: zmq.Socket[Any]) -> NoReturn:
         msg = sck.recv()
         if STAMP_RE.fullmatch(msg) is not None:
             ('stamps' / Path(msg.decode('ascii'))).touch()
-            ret = os.system('make')
-            if ret == 0:
+            r = subprocess.run(['make', '-j', '4'], capture_output=True)
+            if r.returncode == 0:
+                sys.stdout.write(r.stdout.decode('utf-8'))
                 sck.send_string('OK')
             else:
-                sck.send_string(f'ERROR: make failed (status {ret})')
+                sys.stderr.write(r.stderr.decode('utf-8'))
+                sck.send_string(f'ERROR: make failed (status {r.returncode})')
         else:
             sck.send_string('NAUGHTY: invalid stamp name')
 
