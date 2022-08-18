@@ -30,8 +30,12 @@ stamps/ohno: stamps/shibuya
 
 stamps/potato: stamps/whatever
 	{
+		SINCE=0001-01-01
+		if [[ -e $@ ]]; then
+			SINCE=$$(date -r $@ +%Y-%m-%d)
+		fi
 		flock -x 3
-		echo some other thing taking a bit
+		echo "some other thing taking a bit (self-update last $$SINCE)"
 		sleep 3
 		echo $(*F) >$@
 	} 3>/tmp/$(*F).lock
