@@ -17,10 +17,13 @@ def client(ctx: zmq.Context[zmq.Socket[Any]], stamp: str, pk_file: Path) -> str:
           pk_file)
         sck.curve_serverkey, _ = zmq.auth.load_certificate(
           pubkey_dir / 'server.key')
-        # TODO: poll/timeout (if we have a bad key)
-        sck.connect('tcp://localhost:7777')
-        sck.send_string(stamp)
-        return sck.recv().decode('utf-8')
+        with sck.connect('tcp://localhost:7777'):
+            sck.send_string(stamp)
+            if sck.poll(2000) != 0:
+                return sck.recv().decode('utf-8')
+            else:
+                raise RuntimeError(
+                  'Unable to communicate with server (check credentials?)')
 
 def main(argv: list[str]) -> int:
     if len(argv) != 3 or not STAMP_RE.fullmatch(argv[1]):
