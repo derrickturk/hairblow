@@ -16,7 +16,7 @@ stamps/failure:
 	echo add me to 'all' if you want to see --keep-going in action
 	exit 1
 
-stamps/thingo: stamps/ohno stamps/shabazz
+stamps/thingo: stamps/ohno stamps/shabazz stamps/cronme
 	echo updating $@ because $?
 	echo 'thingo!' >$@
 
@@ -28,6 +28,8 @@ stamps/ohno: stamps/shibuya
 		echo $(*F) >$@
 	} 3>/tmp/$(*F).lock
 
+# stamps/whatever is an example for an "external only" task: it only
+#   gets touched by the TCP server
 stamps/potato: stamps/whatever
 	{
 		SINCE=0001-01-01
@@ -40,4 +42,22 @@ stamps/potato: stamps/whatever
 		echo $(*F) >$@
 	} 3>/tmp/$(*F).lock
 
-.PHONY: all clean
+# example for a task with no dependencies, probably fired by a cron job
+# as e.g. FORCE_REMAKE=stamps/cronme make
+# (see below)
+stamps/cronme:
+	{
+		SINCE=0001-01-01
+		if [[ -e $@ ]]; then
+			SINCE=$$(date -r $@ +%Y-%m-%d)
+		fi
+		flock -x 3
+		echo "fetch all records since $$SINCE"
+		sleep 5
+		echo $(*F) >$@
+	} 3>/tmp/$(*F).lock
+
+.FORCE:
+$(FORCE_REMAKE): .FORCE
+
+.PHONY: all clean .FORCE
