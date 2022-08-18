@@ -9,6 +9,13 @@ MAKEFLAGS += --keep-going
 
 all: stamps/thingo stamps/potato
 
+clean:
+	-rm stamps/*
+
+stamps/failure:
+	echo add me to 'all' if you want to see --keep-going in action
+	exit 1
+
 stamps/thingo: stamps/ohno stamps/shabazz
 	echo updating $@ because $?
 	echo 'thingo!' >$@
@@ -29,4 +36,4 @@ stamps/potato: stamps/whatever
 		echo $(*F) >$@
 	} 3>/tmp/$(*F).lock
 
-.PHONY: all
+.PHONY: all clean
