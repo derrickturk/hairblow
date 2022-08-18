@@ -45,6 +45,10 @@ stamps/potato: stamps/whatever
 # example for a task with no dependencies, probably fired by a cron job
 # as e.g. FORCE_REMAKE=stamps/cronme make
 # (see below)
+# the alternative would be to script the job as:
+#   make -B stamps/cronme
+#   make all
+# but that sucks
 stamps/cronme:
 	{
 		SINCE=0001-01-01
