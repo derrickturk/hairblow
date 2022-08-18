@@ -1,9 +1,9 @@
 SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
-.DELETE_ON_ERROR:
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
+MAKEFLAGS += --keep-going
 
 .SILENT:
 
@@ -14,13 +14,19 @@ stamps/thingo: stamps/ohno stamps/shabazz
 	echo 'thingo!' >$@
 
 stamps/ohno: stamps/shibuya
-	echo "doing something elaborate with an API or whatever (btw $$(date -r $< +%Y-%m-%d))"
-	sleep 5
-	echo ohno >$@
+	{
+		flock -x 3
+		echo "doing something elaborate with an API or whatever (btw upstream updated at $$(date -r $< +%Y-%m-%d))"
+		sleep 30
+		echo $(*F) >$@
+	} 3>/tmp/$(*F).lock
 
 stamps/potato: stamps/whatever
-	echo some other thing taking a bit
-	sleep 3
-	echo potato >$@
+	{
+		flock -x 3
+		echo some other thing taking a bit
+		sleep 3
+		echo $(*F) >$@
+	} 3>/tmp/$(*F).lock
 
 .PHONY: all
