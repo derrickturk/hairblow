@@ -9,6 +9,8 @@ MAKEFLAGS += --keep-going
 
 all: stamps/thingo stamps/potato
 
+server_keypair: public_keys/server.key private_keys/server.key_secret
+
 clean:
 	-rm stamps/*
 
@@ -60,6 +62,9 @@ stamps/cronme:
 		sleep 5
 		echo $(*F) >$@
 	} 3>/tmp/$(*F).lock
+
+public_keys/%.key private_keys/%.key_secret &:
+	python make_keypair.py "$*"
 
 .FORCE:
 $(FORCE_REMAKE): .FORCE
